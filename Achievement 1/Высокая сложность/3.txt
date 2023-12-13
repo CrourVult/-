@@ -1,0 +1,58 @@
+; ...
+
+USART_RXC_ISR:
+    in temp, UDR
+    cpi temp, '1' ; Изменить значение TIMER1_INTERVAL
+    breq CHANGE_TIMER1_INTERVAL
+    cpi temp, '2' ; Изменить значение TIMER2_INTERVAL
+    breq CHANGE_TIMER2_INTERVAL
+    cpi temp, 'R' ; Перезапустить таймеры
+    breq RESTART_TIMERS
+    cpi temp, '3' ; Изменить строку TIMER1_STR
+    breq CHANGE_TIMER1_STR
+    cpi temp, '4' ; Изменить строку TIMER2_STR
+    breq CHANGE_TIMER2_STR
+    rjmp USART_RXC_END
+
+CHANGE_TIMER1_INTERVAL:
+    ; Обработка команды изменения TIMER1_INTERVAL
+    ldi temp, new_value ; Новое значение TIMER1_INTERVAL
+    out OCR1A, temp
+    rjmp USART_RXC_END
+
+CHANGE_TIMER2_INTERVAL:
+    ; Обработка команды изменения TIMER2_INTERVAL
+    ldi temp, new_value ; Новое значение TIMER2_INTERVAL
+    out OCR2, temp
+    rjmp USART_RXC_END
+
+RESTART_TIMERS:
+    ; Обработка команды перезапуска таймеров
+    ldi temp, (1<<OCIE1A) | (1<<OCIE2)
+    out TIMSK, temp
+    rjmp USART_RXC_END
+
+CHANGE_TIMER1_STR:
+    ; Обработка команды изменения строки TIMER1_STR
+    ldi counter1, 0
+SET_TIMER1_STR:
+    in temp, UDR
+    st TIMER1_STR + counter1, temp
+    cp temp, $0
+    breq USART_RXC_END
+    inc counter1
+    rjmp SET_TIMER1_STR
+
+CHANGE_TIMER2_STR:
+    ; Обработка команды изменения строки TIMER2_STR
+    ldi counter2, 0
+SET_TIMER2_STR:
+    in temp, UDR
+    st TIMER2_STR + counter2, temp
+    cp temp, $0
+    breq USART_RXC_END
+    inc counter2
+    rjmp SET_TIMER2_STR
+
+USART_RXC_END:
+    reti
