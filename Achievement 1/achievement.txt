@@ -1,38 +1,36 @@
 .include "m8def.inc"
 
-; Определение констант
-.equ F_CPU = 1000000  
+; РћРїСЂРµРґРµР»РµРЅРёРµ РєРѕРЅСЃС‚Р°РЅС‚
+.equ F_CPU = 1000000 
 .equ BAUD = 9600 
 .equ TIMER1_INTERVAL = 1000 
-.equ TIMER2_INTERVAL = 2000
-
-; Определение строк
-TIMER1_STR:	.db "ping", 0
+.equ TIMER2_INTERVAL = 2000 
+; РћРїСЂРµРґРµР»РµРЅРёРµ СЃС‚СЂРѕРє
+TIMER1_STR:	.db "ping", 0 
 TIMER2_STR:	.db "pong", 0 
 
-; Регистры
-.def temp = r16 ;
-.def timer1_high = r17
+; Р РµРіРёСЃС‚СЂС‹
+.def temp = r16 
+.def timer1_high = r17 
 .def timer1_low = r18 
 .def timer2 = r19 
-
-; Флаги
+; Р¤Р»Р°РіРё
 .def timer1_updated = r20 
 .def timer2_updated = r21
 
-; Указатели
+; РЈРєР°Р·Р°С‚РµР»Рё
 .def str_ptr = r22 
-.def str_len = r23 
+.def str_len = r23
 
-; Прерывание таймера 1
+; РџСЂРµСЂС‹РІР°РЅРёРµ С‚Р°Р№РјРµСЂР° 1
 .org OVF1addr
 rjmp TIMER1_ISR
 
-; Прерывание таймера 2
+; РџСЂРµСЂС‹РІР°РЅРёРµ С‚Р°Р№РјРµСЂР° 2
 .org OVF2addr
 rjmp TIMER2_ISR
 
-; Инициализация USART
+; РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ USART
 init_usart:
 	ldi temp, low(-(F_CPU/(BAUD*16))) 
 	sts UBRRH, temp 
@@ -40,11 +38,11 @@ init_usart:
 	sts UBRRL, temp 
 	ldi temp, (1<<RXEN)|(1<<TXEN) 
 	sts UCSRB, temp
-	ldi temp, (1<<UCSZ1)|(1<<UCSZ0) 
+	ldi temp, (1<<UCSZ1)|(1<<UCSZ0)
 	sts UCSRC, temp
 	ret
 
-; Функция передачи символа через USART
+; Р¤СѓРЅРєС†РёСЏ РїРµСЂРµРґР°С‡Рё СЃРёРјРІРѕР»Р° С‡РµСЂРµР· USART
 transmit_char:
 	sts UDR, temp 
 loop_until_bit_is_set:
@@ -52,11 +50,11 @@ loop_until_bit_is_set:
 	rjmp loop_until_bit_is_set 
 	ret
 
-; Функция передачи строки через USART
+; Р¤СѓРЅРєС†РёСЏ РїРµСЂРµРґР°С‡Рё СЃС‚СЂРѕРєРё С‡РµСЂРµР· USART
 transmit_string:
 	ldi str_ptr, 0 
 next_char:
-	ld temp, Z+
+	ld temp, Z+ 
 	cp temp, 0 
 	breq end_transmit 
 	call transmit_char 
@@ -64,7 +62,7 @@ next_char:
 end_transmit:
 	ret
 
-; Инициализация таймеров
+; РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ С‚Р°Р№РјРµСЂРѕРІ
 init_timers:
 	ldi temp, (1<<TOIE1)|(1<<TOIE2)
 	sts TIMSK, temp 
@@ -73,35 +71,35 @@ init_timers:
 	sts TCCR2, temp 
 	ret
 
-; Функция изменения значения таймера 1
+; Р¤СѓРЅРєС†РёСЏ РёР·РјРµРЅРµРЅРёСЏ Р·РЅР°С‡РµРЅРёСЏ С‚Р°Р№РјРµСЂР° 1
 set_timer1_interval:
-	lds timer1_low, Z+
+	lds timer1_low, Z+ 
 	lds timer1_high, Z+ 
-	ldi timer1_updated, 1 
+	ldi timer1_updated, 1
 	ret
 
-; Функция изменения значения таймера 2
+; Р¤СѓРЅРєС†РёСЏ РёР·РјРµРЅРµРЅРёСЏ Р·РЅР°С‡РµРЅРёСЏ С‚Р°Р№РјРµСЂР° 2
 set_timer2_interval:
 	lds timer2, Z+ 
 	ldi timer2_updated, 1
 	ret
 
-; Функция перезапуска таймеров
+; Р¤СѓРЅРєС†РёСЏ РїРµСЂРµР·Р°РїСѓСЃРєР° С‚Р°Р№РјРµСЂРѕРІ
 restart_timers:
-	ldi temp, (1<<TOV1) ; Сброс флага переполнения таймера 1
+	ldi temp, (1<<TOV1)
 	sts TIFR, temp
-	ldi temp, (1<<TOV2) ; Сброс флага переполнения таймера 2
+	ldi temp, (1<<TOV2)
 	sts TIFR, temp
 	ret
 
-; Функция изменения строки для таймера 1
+; Р¤СѓРЅРєС†РёСЏ РёР·РјРµРЅРµРЅРёСЏ СЃС‚СЂРѕРєРё РґР»СЏ С‚Р°Р№РјРµСЂР° 1
 set_timer1_string:
-	ldi str_ptr, 0
+	ldi str_ptr, 0 
 	ldi str_len, 0 
 next_char1:
-	lds temp, Z+ 
+	lds temp, Z+
 	cp temp, 0 
 	breq end_set_timer1_string 
-	sts TIMER1_STR + str_len, temp
+	sts TIMER1_STR + str_len, temp 
 	inc str_len 
 	rjmp next_char1 
