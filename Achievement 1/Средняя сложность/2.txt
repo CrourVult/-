@@ -1,2 +1,0 @@
-.equ TIMER1_INTERVAL = 4
-.equ TIMER2_INTERVAL = 4
