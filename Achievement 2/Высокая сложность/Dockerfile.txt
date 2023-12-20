@@ -1,0 +1,13 @@
+FROM python:3.7
+
+WORKDIR /
+
+COPY requirements.txt /filepython/requirements.txt
+
+RUN python3 -m pip install -r /filepython/requirements.txt
+ADD ./templates ./templates
+ADD Achivment2.3.py Achivment2.3.py
+ADD requirements.txt requirements.txt
+
+ENTRYPOINT ["python3"]
+CMD ["Achivment2.3.py"]
